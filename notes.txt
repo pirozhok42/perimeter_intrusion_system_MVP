@@ -1,0 +1,35 @@
+video folder
+↓
+frame extraction
+↓
+YOLO detection
+↓
+ByteTrack
+↓
+sterile zone logic
+↓
+fence crossing logic
+↓
+event generation
+↓
+logging
+↓
+annotated output
+
+торч для gpu
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+зоны редачить пока тут
+configs/camera_1.json
+("fence_line": [[0, 720], [710, 0]],
+"sterile_zone": [[0, 720], [450, 720], [840, 0], [710, 0]],
+"fence_touch_threshold_px": 12)
+
+посомтреть кадр
+python tools/extract_first_frame.py --video input_stream/archive/video.mp4 --out processed/configs/first_frame.jpg
+
+проверить разметку 
+python tools/preview_config.py --image processed/configs/first_frame.jpg --config configs/camera_1.json
+
+превью тут
+processed/configs/config_preview.jpg

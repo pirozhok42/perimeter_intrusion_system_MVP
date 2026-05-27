@@ -1,0 +1,56 @@
+{
+  "camera_id": "camera_1",
+  "model": {
+    "weights": "yolov8n.pt",
+    "confidence_threshold": 0.35,
+    "iou_threshold": 0.5,
+    "classes": {
+      "person": 0,
+      "car": 2,
+      "motorcycle": 3,
+      "bus": 5,
+      "truck": 7
+    },
+    "enabled_classes": [
+      "person"
+    ]
+  },
+  "zones": {
+    "fence_line": [
+      [
+        0,
+        1080
+      ],
+      [
+        950,
+        0
+      ]
+    ],
+    "sterile_zone": [
+      [
+        0,
+        1080
+      ],
+      [
+        500,
+        1080
+      ],
+      [
+        1100,
+        0
+      ],
+      [
+        950,
+        0
+      ]
+    ],
+    "fence_touch_threshold_px": 12
+  },
+  "events": {
+    "dedup_seconds": 1.0
+  },
+  "output": {
+    "videos_dir": "processed/videos",
+    "logs_dir": "processed/logs"
+  }
+}

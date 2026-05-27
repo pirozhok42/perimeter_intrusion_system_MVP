@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+models/*.pt
+input_stream/**/*.mp4
+input_stream/**/*.avi
+input_stream/**/*.mov
+processed/videos/*
+processed/logs/*
+processed/configs/*
