@@ -1,0 +1,12 @@
+{
+  "cameras": {
+    "per_cam_1": {
+      "severity": "alarm",
+      "event_type": "ALARM_FENCE_CONTACT",
+      "frame_path": "processed\\event_frames\\per_cam_1_event.jpg",
+      "log_path": "processed\\logs\\5_rain_events.json"
+    }
+  },
+  "has_perimeter_alert": true,
+  "has_summary_alert": true
+}
