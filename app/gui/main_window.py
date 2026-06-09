@@ -6,6 +6,9 @@ from PySide6.QtWidgets import (
 
 from app.gui.widgets.add_camera_page import AddCameraPage
 from app.gui.widgets.camera_list_page import CameraListPage
+from app.gui.widgets.summary_page import SummaryPage
+from app.gui.services.live_processor import LiveProcessor
+from app.gui.services.event_state_service import get_alert_flags
 
 
 def user_initials(username: str) -> str:
@@ -23,12 +26,20 @@ class SidebarButton(QPushButton):
         super().__init__(full_text)
         self.full_text = full_text
         self.short_text = short_text or full_text
+        self.has_alert = False
         self.setObjectName("SidebarButton")
         self.setMinimumHeight(42)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
     def set_compact(self, compact: bool):
-        self.setText(self.short_text if compact else self.full_text)
+        base = self.short_text if compact else self.full_text
+        self.setText(("● " + base) if self.has_alert else base)
+
+    def set_alert(self, value: bool):
+        self.has_alert = value
+        self.setObjectName("SidebarButtonAlert" if value else "SidebarButton")
+        self.style().unpolish(self)
+        self.style().polish(self)
 
 
 class MainWindow(QWidget):
@@ -39,6 +50,8 @@ class MainWindow(QWidget):
         super().__init__()
         self.username = username
         self.sidebar_buttons = []
+        self.live_processor = None
+        self.compact_sidebar = False
         self.setWindowTitle("Perimeter Vision - Dashboard")
         self.setMinimumSize(1100, 700)
         self._build_ui()
@@ -58,6 +71,7 @@ class MainWindow(QWidget):
         self.stack.addWidget(self.workspace_page)
 
         self.root.addWidget(self.stack)
+        self._refresh_alerts()
 
     def _build_header(self):
         top_bar = QHBoxLayout()
@@ -114,7 +128,11 @@ class MainWindow(QWidget):
 
     def _build_workspace_page(self):
         wrapper = QWidget()
-        layout = QHBoxLayout(wrapper)
+        outer = QVBoxLayout(wrapper)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(12)
+
+        layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(18)
 
@@ -147,7 +165,7 @@ class MainWindow(QWidget):
 
         self.btn_perimeter.clicked.connect(self._open_perimeter_cameras)
         self.btn_territory.clicked.connect(self._open_territory_cameras)
-        self.btn_summary.clicked.connect(lambda: self._set_placeholder_section("Сводка"))
+        self.btn_summary.clicked.connect(self._open_summary)
         self.btn_updates.clicked.connect(lambda: self._set_placeholder_section("Обновления"))
 
         for btn in self.sidebar_buttons:
@@ -157,18 +175,42 @@ class MainWindow(QWidget):
 
         self.content_stack = QStackedWidget()
 
-        self.placeholder_page = self._build_placeholder_page("Сводка")
+        self.placeholder_page = self._build_placeholder_page("Обновления")
         self.add_camera_page = AddCameraPage(on_camera_created=self._on_camera_created)
         self.perimeter_page = CameraListPage("perimeter")
         self.territory_page = CameraListPage("territory")
+        self.summary_page = SummaryPage()
 
         self.content_stack.addWidget(self.placeholder_page)
         self.content_stack.addWidget(self.add_camera_page)
         self.content_stack.addWidget(self.perimeter_page)
         self.content_stack.addWidget(self.territory_page)
+        self.content_stack.addWidget(self.summary_page)
 
         layout.addWidget(sidebar)
         layout.addWidget(self.content_stack, 1)
+
+        control_bar = QHBoxLayout()
+        control_bar.addStretch()
+
+        self.live_status = QLabel("Обработка live: пауза")
+        self.live_status.setObjectName("Subtitle")
+
+        self.start_live_btn = QPushButton("▶ Пуск обработки live")
+        self.start_live_btn.setObjectName("StartButton")
+        self.start_live_btn.clicked.connect(self._start_live_processing)
+
+        self.pause_live_btn = QPushButton("⏸ Пауза")
+        self.pause_live_btn.setObjectName("PauseButton")
+        self.pause_live_btn.clicked.connect(self._pause_live_processing)
+        self.pause_live_btn.setEnabled(False)
+
+        control_bar.addWidget(self.live_status)
+        control_bar.addWidget(self.start_live_btn)
+        control_bar.addWidget(self.pause_live_btn)
+
+        outer.addLayout(layout, 1)
+        outer.addLayout(control_bar)
 
         return wrapper
 
@@ -214,10 +256,16 @@ class MainWindow(QWidget):
     def _open_perimeter_cameras(self):
         self.perimeter_page.refresh()
         self.content_stack.setCurrentWidget(self.perimeter_page)
+        self._refresh_alerts()
 
     def _open_territory_cameras(self):
         self.territory_page.refresh()
         self.content_stack.setCurrentWidget(self.territory_page)
+
+    def _open_summary(self):
+        self.summary_page.refresh()
+        self.content_stack.setCurrentWidget(self.summary_page)
+        self._refresh_alerts()
 
     def _set_placeholder_section(self, title: str):
         self.section_title.setText(title)
@@ -229,6 +277,46 @@ class MainWindow(QWidget):
             self._open_perimeter_cameras()
         elif camera_name.startswith("ter"):
             self._open_territory_cameras()
+
+    def _start_live_processing(self):
+        if self.live_processor and self.live_processor.isRunning():
+            return
+
+        self.live_status.setText("Обработка live: запущена")
+        self.start_live_btn.setEnabled(False)
+        self.pause_live_btn.setEnabled(True)
+
+        self.live_processor = LiveProcessor(source="input_stream/live")
+        self.live_processor.event_detected.connect(self._handle_live_event)
+        self.live_processor.processing_finished.connect(self._handle_live_finished)
+        self.live_processor.start()
+
+    def _pause_live_processing(self):
+        if self.live_processor and self.live_processor.isRunning():
+            self.live_processor.stop()
+        self.live_status.setText("Обработка live: пауза")
+        self.start_live_btn.setEnabled(True)
+        self.pause_live_btn.setEnabled(False)
+
+    def _handle_live_event(self, camera_name: str, event_type: str):
+        self._refresh_alerts()
+        self.perimeter_page.refresh()
+        self.summary_page.refresh()
+
+    def _handle_live_finished(self):
+        self.live_status.setText("Обработка live: завершена / пауза")
+        self.start_live_btn.setEnabled(True)
+        self.pause_live_btn.setEnabled(False)
+        self._refresh_alerts()
+        self.perimeter_page.refresh()
+        self.summary_page.refresh()
+
+    def _refresh_alerts(self):
+        perimeter_alert, summary_alert = get_alert_flags()
+        self.btn_perimeter.set_alert(perimeter_alert)
+        self.btn_summary.set_alert(summary_alert)
+        for btn in self.sidebar_buttons:
+            btn.set_compact(self.compact_sidebar)
 
     def _show_user_menu(self):
         menu = QMenu(self)
@@ -248,6 +336,6 @@ class MainWindow(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        compact = self.width() < 900
+        self.compact_sidebar = self.width() < 900
         for btn in self.sidebar_buttons:
-            btn.set_compact(compact)
+            btn.set_compact(self.compact_sidebar)

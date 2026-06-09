@@ -150,6 +150,9 @@ def find_first_video(camera_name: str) -> Path | None:
 
 
 def get_camera_preview_frame(camera_name: str) -> Path | None:
+    event_frame = PROJECT_ROOT / 'processed' / 'event_frames' / f'{camera_name}_event.jpg'
+    if event_frame.exists():
+        return event_frame
     PREVIEW_ROOT.mkdir(parents=True, exist_ok=True)
     out_path = PREVIEW_ROOT / f"{camera_name}.jpg"
 

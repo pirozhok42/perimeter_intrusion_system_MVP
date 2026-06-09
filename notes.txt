@@ -33,3 +33,121 @@ python tools/preview_config.py --image processed/configs/first_frame.jpg --confi
 
 превью тут
 processed/configs/config_preview.jpg
+
+Временные данные входа:
+
+```text
+login: admin
+password: admin
+```
+
+Для разработки есть кнопка "Пропустить".
+
+## GUI v2
+
+- avatar button now shows user initials;
+- start page has "Запустить приложение";
+- after start, the workspace opens with sidebar navigation;
+- sidebar includes: add menu, perimeter cameras, territory cameras, summary, updates.
+
+## GUI v3
+
+Запуск:
+
+```bash
+python -m app.gui.main
+```
+
+Темы разделены:
+
+```text
+app/gui/themes/light.py
+app/gui/themes/dark.py
+```
+
+Добавление камеры через GUI создаёт папки:
+
+```text
+input_stream/live/<camera_name>/
+input_stream/archive/<camera_name>/
+```
+
+Новая структура видео:
+
+```text
+input_stream/archive/perimeter_camera_1/test_video.mp4
+input_stream/live/perimeter_camera_1/chunk_001.mp4
+```
+
+Пайплайн ищет видео рекурсивно внутри папки:
+
+```bash
+python -m app.main --source input_stream/archive --config configs/camera_1.json
+python -m app.main --source input_stream/live --config configs/camera_1.json --watch
+```
+## GUI v4
+
+Добавлено:
+- заголовок "Главное меню" кликабельный и возвращает на стартовый экран;
+- камеры периметра должны начинаться с `per`;
+- камеры территории должны начинаться с `ter`;
+- запрещено создавать камеры с одинаковым названием;
+- камера создаёт папки:
+  - `input_stream/live/<camera_name>/`
+  - `input_stream/archive/<camera_name>/`
+  - `configs/<camera_name>.json`
+- вкладка "Камеры периметра" показывает карточки камер;
+- карточка камеры показывает preview из первого видео;
+- если видео нет, показывается `NO VIDEO`;
+- кнопки: удалить камеру, добавить/редактировать линии;
+- интерактивная разметка:
+  - 2 точки забора;
+  - 4 точки стерильной зоны;
+  - сохранение в `configs/<camera_name>.json`.
+
+Запуск GUI:
+
+```bash
+python -m app.gui.main
+```
+
+Запуск обработки:
+
+```bash
+python -m app.main --source input_stream/archive
+python -m app.main --source input_stream/live --watch
+```
+
+Если видео лежит в:
+
+```text
+input_stream/archive/per_cam_1/video.mp4
+```
+
+то будет использован конфиг:
+
+```text
+configs/per_cam_1.json
+```
+
+## GUI v5
+
+Добавлено:
+- камеры и настройки сохраняются между перезапусками через:
+  - `input_stream/live/<camera>/`
+  - `input_stream/archive/<camera>/`
+  - `configs/<camera>.json`
+- live-обработка стартует только по кнопке внизу;
+- при запуске приложения обработка на паузе;
+- при событии:
+  - `WARNING_STERILE_ZONE` → карточка камеры и сводки становится жёлтой;
+  - `ALARM_*` → карточка камеры и сводки становится красной;
+- в кнопках "Камеры периметра" и "Сводка" появляется красный индикатор;
+- в preview камеры подставляется кадр события;
+- сводка читает JSON-логи и показывает интерпретацию по каждой камере.
+
+Запуск:
+
+```bash
+python -m app.gui.main
+```

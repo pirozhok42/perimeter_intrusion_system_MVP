@@ -10,6 +10,16 @@ QFrame#Card, QFrame#CameraCard {
     border-radius: 18px;
     border: 1px solid #E5E7EB;
 }
+QFrame#WarningCard, QFrame#CameraCardWarning {
+    background-color: #FFF7D6;
+    border-radius: 18px;
+    border: 2px solid #F59E0B;
+}
+QFrame#AlarmCard, QFrame#CameraCardAlarm {
+    background-color: #FEE2E2;
+    border-radius: 18px;
+    border: 2px solid #DC2626;
+}
 QFrame#Sidebar {
     background-color: #FFFFFF;
     border-radius: 18px;
@@ -36,6 +46,15 @@ QLabel#NoVideo {
     font-weight: 800;
     border-radius: 10px;
 }
+QLabel#NotificationDot {
+    background-color: #DC2626;
+    color: #FFFFFF;
+    border-radius: 7px;
+    min-width: 14px;
+    max-width: 14px;
+    min-height: 14px;
+    max-height: 14px;
+}
 QLineEdit, QComboBox {
     background-color: #FFFFFF;
     border: 1px solid #D1D5DB;
@@ -54,25 +73,23 @@ QPushButton {
     padding: 10px 14px;
     font-weight: 600;
 }
-QPushButton:hover {
-    background-color: #1D4ED8;
-}
+QPushButton:hover { background-color: #1D4ED8; }
 QPushButton#SecondaryButton {
     background-color: #E5E7EB;
     color: #111827;
 }
-QPushButton#SecondaryButton:hover {
-    background-color: #D1D5DB;
-}
+QPushButton#SecondaryButton:hover { background-color: #D1D5DB; }
 QPushButton#DangerButton {
     background-color: #DC2626;
     color: #FFFFFF;
     min-width: 44px;
     max-width: 44px;
 }
-QPushButton#DangerButton:hover {
-    background-color: #B91C1C;
-}
+QPushButton#DangerButton:hover { background-color: #B91C1C; }
+QPushButton#StartButton { background-color: #16A34A; }
+QPushButton#StartButton:hover { background-color: #15803D; }
+QPushButton#PauseButton { background-color: #F59E0B; color: #111827; }
+QPushButton#PauseButton:hover { background-color: #D97706; }
 QPushButton#AvatarMenuButton {
     background-color: #FFFFFF;
     color: #111827;
@@ -91,8 +108,13 @@ QPushButton#SidebarButton {
     background-color: transparent;
     color: #111827;
 }
-QPushButton#SidebarButton:hover {
-    background-color: #EFF6FF;
+QPushButton#SidebarButton:hover { background-color: #EFF6FF; }
+QPushButton#SidebarButtonAlert {
+    text-align: left;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background-color: #FEE2E2;
+    color: #991B1B;
 }
 QPushButton#AddButton {
     font-size: 22px;
@@ -105,10 +127,6 @@ QMenu {
     border: 1px solid #E5E7EB;
     padding: 6px;
 }
-QMenu::item {
-    padding: 8px 28px 8px 12px;
-}
-QMenu::item:selected {
-    background-color: #EFF6FF;
-}
+QMenu::item { padding: 8px 28px 8px 12px; }
+QMenu::item:selected { background-color: #EFF6FF; }
 """

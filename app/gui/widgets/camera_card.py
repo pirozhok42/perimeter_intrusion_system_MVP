@@ -3,6 +3,8 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
 
 
+from app.gui.services.event_state_service import get_camera_status
+
 class CameraCard(QFrame):
     delete_requested = Signal(str)
     edit_lines_requested = Signal(str)
@@ -11,7 +13,14 @@ class CameraCard(QFrame):
         super().__init__()
         self.camera = camera
         self.camera_name = camera["name"]
-        self.setObjectName("CameraCard")
+        status = get_camera_status(self.camera_name)
+        severity = status.get('severity')
+        if severity == 'alarm':
+            self.setObjectName('CameraCardAlarm')
+        elif severity == 'warning':
+            self.setObjectName('CameraCardWarning')
+        else:
+            self.setObjectName('CameraCard')
         self.setMinimumWidth(280)
         self.setMaximumWidth(360)
         self._build_ui()
