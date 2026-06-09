@@ -1,0 +1,58 @@
+{
+  "camera_id": "per_cam_1",
+  "camera_type": "perimeter",
+  "is_configured": true,
+  "model": {
+    "weights": "yolov8n.pt",
+    "confidence_threshold": 0.35,
+    "iou_threshold": 0.5,
+    "classes": {
+      "person": 0,
+      "car": 2,
+      "motorcycle": 3,
+      "bus": 5,
+      "truck": 7
+    },
+    "enabled_classes": [
+      "person"
+    ]
+  },
+  "zones": {
+    "fence_line": [
+      [
+        2,
+        1071
+      ],
+      [
+        945,
+        0
+      ]
+    ],
+    "sterile_zone": [
+      [
+        945,
+        4
+      ],
+      [
+        1202,
+        0
+      ],
+      [
+        604,
+        1073
+      ],
+      [
+        4,
+        1077
+      ]
+    ],
+    "fence_touch_threshold_px": 12
+  },
+  "events": {
+    "dedup_seconds": 1.0
+  },
+  "output": {
+    "videos_dir": "processed/videos",
+    "logs_dir": "processed/logs"
+  }
+}

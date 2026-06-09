@@ -45,3 +45,11 @@ python -m app.main --source input_stream/live --config configs/camera_1.json --w
 python tools/extract_first_frame.py --video input_stream/archive/video.mp4 --out processed/configs/first_frame.jpg
 python tools/preview_config.py --image processed/configs/first_frame.jpg --config configs/camera_1.json
 ```
+## GUI
+
+Запуск desktop GUI:
+
+```bash
+python -m app.gui.main
+```
+

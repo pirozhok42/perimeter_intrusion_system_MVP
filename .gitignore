@@ -8,3 +8,7 @@ input_stream/**/*.mov
 processed/videos/*
 processed/logs/*
 processed/configs/*
+app/gui v1.zip
+.gitignore
+app/gui v4.zip
+app/gui v2.zip

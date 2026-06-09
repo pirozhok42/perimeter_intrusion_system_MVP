@@ -1,12 +1,33 @@
 import argparse
 import time
+from pathlib import Path
+
 from app.config import AppConfig
 from app.pipeline import PerimeterPipeline
-from app.video.video_io import list_videos
+from app.video.video_io import list_videos, infer_camera_name_from_video
+
+
+def resolve_config_for_video(video_path, source_root, default_config):
+    camera_name = infer_camera_name_from_video(video_path, source_root)
+    camera_config = Path("configs") / f"{camera_name}.json"
+    if camera_config.exists():
+        return str(camera_config)
+    return default_config
+
+
+def process_one_video(video, source_root, default_config):
+    config_path = resolve_config_for_video(video, source_root, default_config)
+    config = AppConfig.from_json(config_path)
+
+    pipeline = PerimeterPipeline(config)
+    result = pipeline.process_video(video)
+
+    print("Done:")
+    for k, v in result.items():
+        print(f"  {k}: {v}")
+
 
 def process_source(source, config_path):
-    config = AppConfig.from_json(config_path)
-    pipeline = PerimeterPipeline(config)
     videos = list_videos(source)
 
     if not videos:
@@ -15,10 +36,8 @@ def process_source(source, config_path):
 
     for video in videos:
         print(f"\nProcessing: {video}")
-        result = pipeline.process_video(video)
-        print("Done:")
-        for k, v in result.items():
-            print(f"  {k}: {v}")
+        process_one_video(video, source, config_path)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -36,8 +55,6 @@ def main():
     print(f"Watching folder: {args.source}")
 
     while True:
-        config = AppConfig.from_json(args.config)
-        pipeline = PerimeterPipeline(config)
         videos = list_videos(args.source)
 
         for video in videos:
@@ -45,11 +62,11 @@ def main():
             if key in processed:
                 continue
             print(f"\nNew video: {video}")
-            result = pipeline.process_video(video)
+            process_one_video(video, args.source, args.config)
             processed.add(key)
-            print("Done:", result)
 
         time.sleep(args.poll_seconds)
+
 
 if __name__ == "__main__":
     main()
