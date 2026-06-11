@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QMessageBox, QFrame, QScrollArea, QGridLayout
 
 from app.gui.services.camera_service import list_cameras, delete_camera
+from app.gui.services.event_state_service import acknowledge_camera
 from app.gui.widgets.camera_card import CameraCard
 from app.gui.widgets.zone_editor_dialog import ZoneEditorDialog
 
@@ -59,9 +60,14 @@ class CameraListPage(QWidget):
             card = CameraCard(camera)
             card.delete_requested.connect(self._delete_camera)
             card.edit_lines_requested.connect(self._edit_lines)
+            card.acknowledge_requested.connect(self._acknowledge_camera)
             row = idx // 3
             col = idx % 3
             self.grid.addWidget(card, row, col)
+
+    def _acknowledge_camera(self, camera_name: str):
+        acknowledge_camera(camera_name)
+        self.refresh()
 
     def _delete_camera(self, camera_name: str):
         result = QMessageBox.question(

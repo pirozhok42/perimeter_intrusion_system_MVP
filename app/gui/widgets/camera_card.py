@@ -1,43 +1,34 @@
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
-
-
 from app.gui.services.event_state_service import get_camera_status
 
 class CameraCard(QFrame):
     delete_requested = Signal(str)
     edit_lines_requested = Signal(str)
+    acknowledge_requested = Signal(str)
 
-    def __init__(self, camera: dict):
+    def __init__(self, camera):
         super().__init__()
         self.camera = camera
         self.camera_name = camera["name"]
         status = get_camera_status(self.camera_name)
-        severity = status.get('severity')
-        if severity == 'alarm':
-            self.setObjectName('CameraCardAlarm')
-        elif severity == 'warning':
-            self.setObjectName('CameraCardWarning')
-        else:
-            self.setObjectName('CameraCard')
+        severity = status.get("severity")
+        self.setObjectName("CameraCardAlarm" if severity == "alarm" else "CameraCardWarning" if severity == "warning" else "CameraCard")
         self.setMinimumWidth(280)
         self.setMaximumWidth(360)
-        self._build_ui()
+        self._build_ui(status)
 
-    def _build_ui(self):
+    def _build_ui(self, status):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(14, 14, 14, 14)
         layout.setSpacing(10)
-
         title = QLabel(self.camera_name)
         title.setObjectName("SectionTitle")
         title.setAlignment(Qt.AlignCenter)
-
         preview = QLabel()
         preview.setFixedHeight(170)
         preview.setAlignment(Qt.AlignCenter)
-
         preview_path = self.camera.get("preview_frame")
         if preview_path:
             pixmap = QPixmap(str(preview_path))
@@ -47,23 +38,28 @@ class CameraCard(QFrame):
                 self._set_no_video(preview)
         else:
             self._set_no_video(preview)
-
+        layout.addWidget(title)
+        layout.addWidget(preview)
+        if status.get("event_type"):
+            event_label = QLabel(f"Событие: {status.get('event_type')}")
+            event_label.setObjectName("Subtitle")
+            event_label.setWordWrap(True)
+            layout.addWidget(event_label)
         buttons = QHBoxLayout()
-
         line_text = "Редактировать линии" if self.camera.get("is_configured") else "Добавить линии"
         line_btn = QPushButton(line_text)
         line_btn.clicked.connect(lambda: self.edit_lines_requested.emit(self.camera_name))
-
         delete_btn = QPushButton("🗑")
         delete_btn.setObjectName("DangerButton")
         delete_btn.clicked.connect(lambda: self.delete_requested.emit(self.camera_name))
-
         buttons.addWidget(line_btn, 1)
         buttons.addWidget(delete_btn)
-
-        layout.addWidget(title)
-        layout.addWidget(preview)
         layout.addLayout(buttons)
+        if status.get("severity"):
+            ok_btn = QPushButton("Ок")
+            ok_btn.setObjectName("SecondaryButton")
+            ok_btn.clicked.connect(lambda: self.acknowledge_requested.emit(self.camera_name))
+            layout.addWidget(ok_btn)
 
     def _set_no_video(self, label):
         label.setObjectName("NoVideo")

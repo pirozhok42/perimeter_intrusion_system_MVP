@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
 from app.gui.widgets.add_camera_page import AddCameraPage
 from app.gui.widgets.camera_list_page import CameraListPage
 from app.gui.widgets.summary_page import SummaryPage
+from app.gui.widgets.archive_page import ArchivePage
 from app.gui.services.live_processor import LiveProcessor
 from app.gui.services.event_state_service import get_alert_flags
 
@@ -154,18 +155,21 @@ class MainWindow(QWidget):
         self.btn_perimeter = SidebarButton("Камеры периметра", "Камеры пер...")
         self.btn_territory = SidebarButton("Камеры территории", "Камеры тер...")
         self.btn_summary = SidebarButton("Сводка", "Сводка")
+        self.btn_archive = SidebarButton("Архив", "Архив")
         self.btn_updates = SidebarButton("Обновления", "Обновл...")
 
         self.sidebar_buttons = [
             self.btn_perimeter,
             self.btn_territory,
             self.btn_summary,
+            self.btn_archive,
             self.btn_updates,
         ]
 
         self.btn_perimeter.clicked.connect(self._open_perimeter_cameras)
         self.btn_territory.clicked.connect(self._open_territory_cameras)
         self.btn_summary.clicked.connect(self._open_summary)
+        self.btn_archive.clicked.connect(self._open_archive)
         self.btn_updates.clicked.connect(lambda: self._set_placeholder_section("Обновления"))
 
         for btn in self.sidebar_buttons:
@@ -180,12 +184,14 @@ class MainWindow(QWidget):
         self.perimeter_page = CameraListPage("perimeter")
         self.territory_page = CameraListPage("territory")
         self.summary_page = SummaryPage()
+        self.archive_page = ArchivePage()
 
         self.content_stack.addWidget(self.placeholder_page)
         self.content_stack.addWidget(self.add_camera_page)
         self.content_stack.addWidget(self.perimeter_page)
         self.content_stack.addWidget(self.territory_page)
         self.content_stack.addWidget(self.summary_page)
+        self.content_stack.addWidget(self.archive_page)
 
         layout.addWidget(sidebar)
         layout.addWidget(self.content_stack, 1)
@@ -196,7 +202,7 @@ class MainWindow(QWidget):
         self.live_status = QLabel("Обработка live: пауза")
         self.live_status.setObjectName("Subtitle")
 
-        self.start_live_btn = QPushButton("▶ Пуск обработки live")
+        self.start_live_btn = QPushButton("▶ Пуск постоянной live-обработки")
         self.start_live_btn.setObjectName("StartButton")
         self.start_live_btn.clicked.connect(self._start_live_processing)
 
@@ -267,6 +273,10 @@ class MainWindow(QWidget):
         self.content_stack.setCurrentWidget(self.summary_page)
         self._refresh_alerts()
 
+    def _open_archive(self):
+        self.archive_page.refresh()
+        self.content_stack.setCurrentWidget(self.archive_page)
+
     def _set_placeholder_section(self, title: str):
         self.section_title.setText(title)
         self.section_text.setText(f"Раздел «{title}» пока в разработке. Следующим этапом добавим его функционал.")
@@ -282,13 +292,14 @@ class MainWindow(QWidget):
         if self.live_processor and self.live_processor.isRunning():
             return
 
-        self.live_status.setText("Обработка live: запущена")
+        self.live_status.setText("Обработка live: запущена, ожидание новых видео")
         self.start_live_btn.setEnabled(False)
         self.pause_live_btn.setEnabled(True)
 
         self.live_processor = LiveProcessor(source="input_stream/live")
         self.live_processor.event_detected.connect(self._handle_live_event)
         self.live_processor.processing_finished.connect(self._handle_live_finished)
+        self.live_processor.status_message.connect(self.live_status.setText)
         self.live_processor.start()
 
     def _pause_live_processing(self):
@@ -304,7 +315,7 @@ class MainWindow(QWidget):
         self.summary_page.refresh()
 
     def _handle_live_finished(self):
-        self.live_status.setText("Обработка live: завершена / пауза")
+        self.live_status.setText("Обработка live: пауза")
         self.start_live_btn.setEnabled(True)
         self.pause_live_btn.setEnabled(False)
         self._refresh_alerts()
