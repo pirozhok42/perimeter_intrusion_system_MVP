@@ -14,3 +14,4 @@ torchaudio==2.2.2
 scikit-learn==1.7.2
 gdown==6.1.0
 tensorboard==2.20.0
+pyinstaller==6.20.0

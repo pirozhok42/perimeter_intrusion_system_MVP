@@ -14,3 +14,8 @@ app/gui v4.zip
 app/gui v2.zip
 notes.txt
 app/gui v5.rar
+dist/
+build/
+yolov8n.pt
+yolo11s.pt
+mobilenet_v3-large.pt

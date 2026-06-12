@@ -1,4 +1,5 @@
 import sys
+from app.utils.runtime import configure_runtime
 from PySide6.QtWidgets import QApplication
 
 from app.gui.styles import LIGHT_THEME, DARK_THEME
@@ -44,6 +45,7 @@ class GuiApp:
         sys.exit(self.app.exec())
 
 def main():
+    configure_runtime(cpu_threads=2)
     GuiApp().run()
 
 if __name__ == "__main__":

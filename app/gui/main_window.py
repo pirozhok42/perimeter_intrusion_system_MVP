@@ -83,7 +83,7 @@ class MainWindow(QWidget):
         self.header_title.setToolTip("Вернуться в главное меню")
         self.header_title.mousePressEvent = lambda event: self._go_home()
 
-        subtitle = QLabel("MVP интерфейс системы контроля периметра")
+        subtitle = QLabel("Интерфейс системы контроля периметра")
         subtitle.setObjectName("Subtitle")
 
         title_box.addWidget(self.header_title)
@@ -235,7 +235,7 @@ class MainWindow(QWidget):
         self.section_title = QLabel(title_text)
         self.section_title.setObjectName("Title")
 
-        self.section_text = QLabel(f"Раздел «{title_text}» пока в разработке.")
+        self.section_text = QLabel("dev build 0.18.2" if title_text == "Обновления" else f"Раздел «{title_text}» пока в разработке.")
         self.section_text.setObjectName("Subtitle")
         self.section_text.setWordWrap(True)
 
@@ -285,7 +285,7 @@ class MainWindow(QWidget):
 
     def _set_placeholder_section(self, title: str):
         self.section_title.setText(title)
-        self.section_text.setText(f"Раздел «{title}» пока в разработке. Следующим этапом добавим его функционал.")
+        self.section_text.setText("dev build 0.18.2" if title == "Обновления" else f"Раздел «{title}» пока в разработке. Следующим этапом добавим его функционал.")
         self.content_stack.setCurrentWidget(self.placeholder_page)
 
     def _on_camera_created(self, camera_name: str):

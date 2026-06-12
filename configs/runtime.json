@@ -1,0 +1,6 @@
+{
+  "cpu_threads": 2,
+  "default_processing_mode": "two_streams",
+  "max_per_camera_workers": 4,
+  "disable_console_progress": true
+}

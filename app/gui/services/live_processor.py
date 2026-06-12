@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from PySide6.QtCore import QThread, Signal
 
 from app.video.video_io import list_videos, infer_camera_name_from_video
+from app.utils.runtime import configure_runtime
 from app.gui.services.event_state_service import update_camera_event
 from app.reid.global_id_manager import GlobalIdManager
 
@@ -35,6 +36,7 @@ class LiveProcessor(QThread):
         self._stop_requested = True
 
     def run(self):
+        configure_runtime(cpu_threads=2)
         mode_name = {
             "single_thread": "1 поток",
             "two_streams": "2 потока: детекция + трекинг",
@@ -103,7 +105,7 @@ class LiveProcessor(QThread):
                 camera_name = infer_camera_name_from_video(video, self.source)
                 groups.setdefault(camera_name, []).append(video)
 
-            max_workers = max(1, len(groups))
+            max_workers = min(4, max(1, len(groups)))
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 futures = [executor.submit(self._process_list, cam_videos) for cam_videos in groups.values()]
                 for future in as_completed(futures):
