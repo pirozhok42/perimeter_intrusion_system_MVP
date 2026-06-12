@@ -1,7 +1,7 @@
 {
   "camera_id": "camera_1",
   "model": {
-    "weights": "yolov8n.pt",
+    "weights": "yolo11s.pt",
     "confidence_threshold": 0.35,
     "iou_threshold": 0.5,
     "classes": {

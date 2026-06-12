@@ -1,7 +1,7 @@
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QMenu, QFrame, QMessageBox, QStackedWidget, QSizePolicy
+    QMenu, QFrame, QMessageBox, QStackedWidget, QSizePolicy, QComboBox
 )
 
 from app.gui.widgets.add_camera_page import AddCameraPage
@@ -199,6 +199,11 @@ class MainWindow(QWidget):
         control_bar = QHBoxLayout()
         control_bar.addStretch()
 
+        self.processing_mode_select = QComboBox()
+        self.processing_mode_select.addItem("2 потока: забор + трекинг", "two_streams")
+        self.processing_mode_select.addItem("Поток на каждую камеру", "per_camera")
+        self.processing_mode_select.addItem("1 поток", "single_thread")
+
         self.live_status = QLabel("Обработка live: пауза")
         self.live_status.setObjectName("Subtitle")
 
@@ -211,6 +216,7 @@ class MainWindow(QWidget):
         self.pause_live_btn.clicked.connect(self._pause_live_processing)
         self.pause_live_btn.setEnabled(False)
 
+        control_bar.addWidget(self.processing_mode_select)
         control_bar.addWidget(self.live_status)
         control_bar.addWidget(self.start_live_btn)
         control_bar.addWidget(self.pause_live_btn)
@@ -285,7 +291,7 @@ class MainWindow(QWidget):
     def _on_camera_created(self, camera_name: str):
         if camera_name.startswith("per"):
             self._open_perimeter_cameras()
-        elif camera_name.startswith("ter"):
+        elif camera_name.startswith("ter") or camera_name.startswith("trk"):
             self._open_territory_cameras()
 
     def _start_live_processing(self):
@@ -296,7 +302,7 @@ class MainWindow(QWidget):
         self.start_live_btn.setEnabled(False)
         self.pause_live_btn.setEnabled(True)
 
-        self.live_processor = LiveProcessor(source="input_stream/live")
+        self.live_processor = LiveProcessor(source="input_stream/live", processing_mode=self.processing_mode_select.currentData())
         self.live_processor.event_detected.connect(self._handle_live_event)
         self.live_processor.processing_finished.connect(self._handle_live_finished)
         self.live_processor.status_message.connect(self.live_status.setText)
@@ -323,8 +329,9 @@ class MainWindow(QWidget):
         self.summary_page.refresh()
 
     def _refresh_alerts(self):
-        perimeter_alert, summary_alert = get_alert_flags()
-        self.btn_perimeter.set_alert(perimeter_alert)
+        detection_alert, tracking_alert, summary_alert = get_alert_flags()
+        self.btn_perimeter.set_alert(detection_alert)
+        self.btn_territory.set_alert(tracking_alert)
         self.btn_summary.set_alert(summary_alert)
         for btn in self.sidebar_buttons:
             btn.set_compact(self.compact_sidebar)

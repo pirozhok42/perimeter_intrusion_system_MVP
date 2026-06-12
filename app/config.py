@@ -28,14 +28,14 @@ class AppConfig:
     def class_name_by_id(self):
         return {int(v): k for k, v in self.raw["model"].get("classes", {}).items()}
     @property
-    def fence_line(self): return self.raw["zones"]["fence_line"]
+    def fence_line(self): return self.raw.get("zones", {}).get("fence_line", [])
     @property
-    def sterile_zone(self): return self.raw["zones"]["sterile_zone"]
+    def sterile_zone(self): return self.raw.get("zones", {}).get("sterile_zone", [])
     @property
-    def fence_touch_threshold_px(self): return float(self.raw["zones"].get("fence_touch_threshold_px", 12))
+    def fence_touch_threshold_px(self): return float(self.raw.get("zones", {}).get("fence_touch_threshold_px", 12))
     @property
-    def output_videos_dir(self): return Path(self.raw["output"].get("videos_dir", "processed/videos"))
+    def output_videos_dir(self): return Path(self.raw.get("output", {}).get("videos_dir", "processed/videos"))
     @property
-    def output_logs_dir(self): return Path(self.raw["output"].get("logs_dir", "processed/logs"))
+    def output_logs_dir(self): return Path(self.raw.get("output", {}).get("logs_dir", "processed/logs"))
     @property
-    def dedup_seconds(self): return float(self.raw["events"].get("dedup_seconds", 1.0))
+    def dedup_seconds(self): return float(self.raw.get("events", {}).get("dedup_seconds", 1.0))

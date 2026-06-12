@@ -1,9 +1,10 @@
 {
   "camera_id": "per_cam_1",
   "camera_type": "perimeter",
+  "app_role": "detection",
   "is_configured": true,
   "model": {
-    "weights": "yolov8n.pt",
+    "weights": "yolo11s.pt",
     "confidence_threshold": 0.35,
     "iou_threshold": 0.5,
     "classes": {
@@ -17,32 +18,40 @@
       "person"
     ]
   },
+  "reid": {
+    "enabled": false,
+    "model_name": "mobilenet_v3_large",
+    "weights": "mobilenet_v3_large.pth",
+    "similarity_threshold": 0.62,
+    "device": "cuda",
+    "reid_update_every_n_frames": 10
+  },
   "zones": {
     "fence_line": [
       [
-        2,
-        1071
+        41,
+        1077
       ],
       [
-        945,
-        0
+        960,
+        4
       ]
     ],
     "sterile_zone": [
       [
-        945,
+        962,
+        2
+      ],
+      [
+        1166,
         4
       ],
       [
-        1202,
-        0
+        691,
+        1077
       ],
       [
-        604,
-        1073
-      ],
-      [
-        4,
+        39,
         1077
       ]
     ],

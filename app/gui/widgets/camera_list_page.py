@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QMessageBox, QFrame, QScrollArea, QGridLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QMessageBox, QFrame, QScrollArea, QGridLayout
 
 from app.gui.services.camera_service import list_cameras, delete_camera
 from app.gui.services.event_state_service import acknowledge_camera
@@ -7,9 +7,9 @@ from app.gui.widgets.zone_editor_dialog import ZoneEditorDialog
 
 
 class CameraListPage(QWidget):
-    def __init__(self, camera_type: str):
+    def __init__(self, section: str):
         super().__init__()
-        self.camera_type = camera_type
+        self.section = section  # "perimeter" or "territory"
         self._build_ui()
 
     def _build_ui(self):
@@ -23,7 +23,7 @@ class CameraListPage(QWidget):
         self.layout.setContentsMargins(32, 32, 32, 32)
         self.layout.setSpacing(14)
 
-        self.title = QLabel("Камеры периметра" if self.camera_type == "perimeter" else "Камеры территории")
+        self.title = QLabel("Камеры периметра" if self.section == "perimeter" else "Камеры территории")
         self.title.setObjectName("Title")
 
         self.scroll = QScrollArea()
@@ -41,6 +41,16 @@ class CameraListPage(QWidget):
         root.addWidget(self.card)
         self.refresh()
 
+    def _get_cameras(self):
+        if self.section == "perimeter":
+            # Только камеры детекции периметра.
+            return list_cameras(camera_type="perimeter", app_role="detection")
+
+        # Территория = обычные territory-камеры + tracking-камеры.
+        territory_detection = list_cameras(camera_type="territory", app_role="detection")
+        tracking_cameras = list_cameras(app_role="tracking")
+        return territory_detection + tracking_cameras
+
     def refresh(self):
         while self.grid.count():
             item = self.grid.takeAt(0)
@@ -48,7 +58,7 @@ class CameraListPage(QWidget):
             if widget:
                 widget.deleteLater()
 
-        cameras = list_cameras(self.camera_type)
+        cameras = self._get_cameras()
 
         if not cameras:
             empty = QLabel("Камер пока нет.")
@@ -66,7 +76,8 @@ class CameraListPage(QWidget):
             self.grid.addWidget(card, row, col)
 
     def _acknowledge_camera(self, camera_name: str):
-        acknowledge_camera(camera_name)
+        module = "tracking" if camera_name.startswith("trk") else "detection"
+        acknowledge_camera(camera_name, module)
         self.refresh()
 
     def _delete_camera(self, camera_name: str):
@@ -82,7 +93,15 @@ class CameraListPage(QWidget):
         self.refresh()
 
     def _edit_lines(self, camera_name: str):
-        cameras = list_cameras(self.camera_type)
+        if camera_name.startswith("trk"):
+            QMessageBox.information(
+                self,
+                "Разметка не требуется",
+                "Камеры мультикамерного трекинга следят по всей области кадра и не требуют линий забора."
+            )
+            return
+
+        cameras = self._get_cameras()
         camera = next((c for c in cameras if c["name"] == camera_name), None)
 
         if not camera or not camera.get("preview_frame"):

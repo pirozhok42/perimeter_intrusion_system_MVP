@@ -1,0 +1,41 @@
+{
+  "camera_id": "trk_cam_1",
+  "camera_type": "territory",
+  "app_role": "tracking",
+  "is_configured": true,
+  "model": {
+    "weights": "yolo11s.pt",
+    "confidence_threshold": 0.35,
+    "iou_threshold": 0.5,
+    "classes": {
+      "person": 0,
+      "car": 2,
+      "motorcycle": 3,
+      "bus": 5,
+      "truck": 7
+    },
+    "enabled_classes": [
+      "person"
+    ]
+  },
+  "reid": {
+    "enabled": true,
+    "model_name": "mobilenet_v3_large",
+    "weights": "mobilenet_v3_large.pth",
+    "similarity_threshold": 0.62,
+    "device": "cuda",
+    "reid_update_every_n_frames": 10
+  },
+  "zones": {
+    "fence_line": [],
+    "sterile_zone": [],
+    "fence_touch_threshold_px": 12
+  },
+  "events": {
+    "dedup_seconds": 1.0
+  },
+  "output": {
+    "videos_dir": "processed/videos",
+    "logs_dir": "processed/logs"
+  }
+}

@@ -136,7 +136,7 @@ class ArchivePage(QWidget):
         checkbox.setProperty("history_index", original_idx)
         self.checkboxes.append(checkbox)
 
-        title = QLabel(f"{event.get('camera_name', '?')} — {event.get('event_type', '?')}")
+        title = QLabel(f"{event.get('camera_name', '?')} [{event.get('module', 'detection')}] — {event.get('event_type', '?')}")
         title.setObjectName("SectionTitle")
 
         top.addWidget(checkbox)

@@ -1,10 +1,5 @@
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton,
-    QComboBox, QLineEdit, QMessageBox, QFrame
-)
-
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QComboBox, QLineEdit, QMessageBox, QFrame
 from app.gui.services.camera_service import create_camera
-
 
 class AddCameraPage(QWidget):
     def __init__(self, on_camera_created=None):
@@ -14,90 +9,55 @@ class AddCameraPage(QWidget):
 
     def _build_ui(self):
         root = QVBoxLayout(self)
-        root.setContentsMargins(0, 0, 0, 0)
-
         card = QFrame()
         card.setObjectName("Card")
-
         layout = QVBoxLayout(card)
-        layout.setContentsMargins(32, 32, 32, 32)
+        layout.setContentsMargins(32,32,32,32)
         layout.setSpacing(16)
-
         title = QLabel("Добавить камеру")
         title.setObjectName("Title")
-
-        description = QLabel(
-            "Для камеры периметра название должно начинаться с «per». "
-            "Для камеры территории — с «ter». Одинаковые названия запрещены."
-        )
-        description.setObjectName("Subtitle")
-        description.setWordWrap(True)
-
-        location_label = QLabel("Выберите расположение камеры")
-        location_label.setObjectName("SectionTitle")
-
+        desc = QLabel("Для детекции: per / ter. Для мультикамерного трекинга: trk.")
+        desc.setObjectName("Subtitle")
+        desc.setWordWrap(True)
+        self.role_select = QComboBox()
+        self.role_select.addItems(["Детекция забора", "Мультикамерный трекинг"])
+        self.role_select.currentTextChanged.connect(self._on_role_changed)
         self.location_select = QComboBox()
         self.location_select.addItems(["Периметр", "Территория"])
-
-        name_label = QLabel("Напишите или придумайте название камеры")
-        name_label.setObjectName("SectionTitle")
-
         self.camera_name_input = QLineEdit()
-        self.camera_name_input.setPlaceholderText("Например: per_cam_1 или ter_cam_1")
-
-        self.create_button = QPushButton("Создать камеру")
-        self.create_button.clicked.connect(self._create_camera)
-
+        self.camera_name_input.setPlaceholderText("per_cam_1, ter_cam_1 или trk_cam_1")
+        btn = QPushButton("Создать камеру")
+        btn.clicked.connect(self._create_camera)
         self.status = QLabel("")
         self.status.setObjectName("Subtitle")
         self.status.setWordWrap(True)
-
-        layout.addWidget(title)
-        layout.addWidget(description)
-        layout.addSpacing(8)
-        layout.addWidget(location_label)
-        layout.addWidget(self.location_select)
-        layout.addWidget(name_label)
-        layout.addWidget(self.camera_name_input)
-        layout.addWidget(self.create_button)
-        layout.addWidget(self.status)
+        for w in [title, desc, QLabel("Назначение камеры"), self.role_select, QLabel("Расположение"), self.location_select, QLabel("Название камеры"), self.camera_name_input, btn, self.status]:
+            if isinstance(w, QLabel) and w.text() in ["Назначение камеры", "Расположение", "Название камеры"]:
+                w.setObjectName("SectionTitle")
+            layout.addWidget(w)
         layout.addStretch()
-
         root.addWidget(card)
+        self._on_role_changed(self.role_select.currentText())
+
+    def _on_role_changed(self, value):
+        if value == "Мультикамерный трекинг":
+            self.location_select.setCurrentText("Территория")
+            self.location_select.setEnabled(False)
+            self.camera_name_input.setPlaceholderText("Например: trk_cam_1")
+        else:
+            self.location_select.setEnabled(True)
+            self.camera_name_input.setPlaceholderText("Например: per_cam_1 или ter_cam_1")
 
     def _create_camera(self):
-        location = self.location_select.currentText().lower()
-        camera_type = "perimeter" if location == "периметр" else "territory"
-
+        app_role = "tracking" if self.role_select.currentText() == "Мультикамерный трекинг" else "detection"
+        camera_type = "territory" if app_role == "tracking" else "perimeter" if self.location_select.currentText().lower() == "периметр" else "territory"
         try:
-            result = create_camera(self.camera_name_input.text(), camera_type)
-        except ValueError as exc:
+            result = create_camera(self.camera_name_input.text(), camera_type, app_role)
+        except Exception as exc:
             QMessageBox.warning(self, "Ошибка", str(exc))
             return
-        except FileExistsError:
-            QMessageBox.warning(self, "Ошибка", "Камера с таким названием уже существует.")
-            return
-
-        live_path = result["live_path"]
-        archive_path = result["archive_path"]
-        camera_name = result["camera_name"]
-
-        QMessageBox.information(
-            self,
-            "Загрузка тестового видео",
-            "Загрузите тестовое видео с камеры для дальнейшей настройки по пути:\n\n"
-            f"{archive_path}\n\n"
-            "Для live-имитации используйте путь:\n\n"
-            f"{live_path}"
-        )
-
-        QMessageBox.information(
-            self,
-            "Камера создана",
-            f"Камера «{camera_name}» создана."
-        )
-
-        self.status.setText(f"Создано:\narchive: {archive_path}\nlive: {live_path}")
-
+        QMessageBox.information(self, "Загрузка тестового видео", f"Загрузите видео:\n\n{result['archive_path']}\n\nLive:\n\n{result['live_path']}")
+        QMessageBox.information(self, "Камера создана", f"Камера «{result['camera_name']}» создана.")
+        self.status.setText(f"Создано: {result['archive_path']}")
         if self.on_camera_created:
-            self.on_camera_created(camera_name)
+            self.on_camera_created(result["camera_name"])

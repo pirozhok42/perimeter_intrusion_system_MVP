@@ -7,9 +7,53 @@
       "log_path": "processed\\logs\\5_rain_events.json",
       "video_path": "input_stream\\live\\per_cam_1\\5_rain.mp4",
       "acknowledged": true,
-      "updated_at": "2026-06-11 19:54:09"
+      "updated_at": "2026-06-11 19:54:09",
+      "detection": {
+        "severity": null,
+        "event_type": null,
+        "frame_path": null,
+        "log_path": null,
+        "video_path": null,
+        "acknowledged": true,
+        "updated_at": "2026-06-12 16:19:27"
+      }
+    },
+    "per_cam_2": {
+      "detection": {
+        "severity": null,
+        "event_type": null,
+        "frame_path": null,
+        "log_path": null,
+        "video_path": null,
+        "acknowledged": true,
+        "updated_at": "2026-06-12 16:19:35"
+      }
+    },
+    "trk_cam_2": {
+      "tracking": {
+        "severity": null,
+        "event_type": null,
+        "frame_path": null,
+        "log_path": null,
+        "video_path": null,
+        "acknowledged": true,
+        "updated_at": "2026-06-12 16:14:15"
+      }
+    },
+    "trk_cam_1": {
+      "tracking": {
+        "severity": null,
+        "event_type": null,
+        "frame_path": null,
+        "log_path": null,
+        "video_path": null,
+        "acknowledged": true,
+        "updated_at": "2026-06-12 16:15:01"
+      }
     }
   },
   "has_perimeter_alert": false,
-  "has_summary_alert": false
+  "has_summary_alert": false,
+  "has_detection_alert": false,
+  "has_tracking_alert": false
 }

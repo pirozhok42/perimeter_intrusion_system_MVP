@@ -10,8 +10,7 @@ class EventLogger:
         self.events.append(event)
 
     def save(self, csv_path, json_path):
-        csv_path = Path(csv_path)
-        json_path = Path(json_path)
+        csv_path, json_path = Path(csv_path), Path(json_path)
         csv_path.parent.mkdir(parents=True, exist_ok=True)
         json_path.parent.mkdir(parents=True, exist_ok=True)
         pd.DataFrame(self.events).to_csv(csv_path, index=False)

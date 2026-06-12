@@ -14,29 +14,18 @@ class EventManager:
         foot = bbox_foot_point(xyxy)
         in_zone = point_in_polygon(foot, self.sterile_zone)
         touches_fence = bbox_touches_line(xyxy, self.fence_line, self.touch_threshold_px)
-
         current_side = line_side(foot, self.fence_line)
         previous_side = self.last_side_by_track.get(tracker_id)
-        crossed_fence = previous_side is not None and current_side != 0 and previous_side != 0 and current_side != previous_side
+        crossed = previous_side is not None and current_side != 0 and previous_side != 0 and current_side != previous_side
         self.last_side_by_track[tracker_id] = current_side
-
-        event_type = None
-        if crossed_fence:
-            event_type = ALARM_FENCE_CROSSED
-        elif touches_fence:
-            event_type = ALARM_FENCE_CONTACT
-        elif in_zone:
-            event_type = WARNING_STERILE_ZONE
-
+        event_type = ALARM_FENCE_CROSSED if crossed else ALARM_FENCE_CONTACT if touches_fence else WARNING_STERILE_ZONE if in_zone else None
         if event_type is None:
             return None
-
         time_sec = frame_idx / fps if fps else 0
         key = (tracker_id, event_type)
         if key in self.last_event_time and time_sec - self.last_event_time[key] < self.dedup_seconds:
             return None
         self.last_event_time[key] = time_sec
-
         return {
             "timestamp_sec": round(time_sec, 3),
             "frame": int(frame_idx),

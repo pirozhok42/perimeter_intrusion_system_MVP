@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame, QScrollArea, QGridLayout, QPushButton
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QFrame, QScrollArea, QGridLayout, QPushButton, QComboBox
 from app.gui.services.camera_service import list_cameras
 from app.gui.services.event_state_service import get_camera_status, acknowledge_summary_camera
 
@@ -24,7 +24,11 @@ class SummaryPage(QWidget):
         self.grid = QGridLayout(self.grid_holder)
         self.grid.setSpacing(16)
         self.scroll.setWidget(self.grid_holder)
+        self.filter_select = QComboBox()
+        self.filter_select.addItems(["Все камеры", "Камеры детекции", "Камеры трекинга"])
+        self.filter_select.currentTextChanged.connect(self.refresh)
         layout.addWidget(title)
+        layout.addWidget(self.filter_select)
         layout.addWidget(self.scroll)
         root.addWidget(card)
         self.refresh()
@@ -34,17 +38,25 @@ class SummaryPage(QWidget):
             item = self.grid.takeAt(0)
             widget = item.widget()
             if widget: widget.deleteLater()
-        cameras = list_cameras()
+        mode = self.filter_select.currentText() if hasattr(self, "filter_select") else "Все камеры"
+        if mode == "Камеры детекции":
+            cameras = list_cameras(app_role="detection")
+        elif mode == "Камеры трекинга":
+            cameras = list_cameras(app_role="tracking")
+        else:
+            cameras = list_cameras()
         if not cameras:
             empty = QLabel("Камер пока нет.")
             empty.setObjectName("Subtitle")
             self.grid.addWidget(empty,0,0)
             return
         for idx, camera in enumerate(cameras):
-            self.grid.addWidget(self._make_box(camera["name"]), idx//2, idx%2)
+            self.grid.addWidget(self._make_box(camera), idx//2, idx%2)
 
-    def _make_box(self, camera_name):
-        status = get_camera_status(camera_name)
+    def _make_box(self, camera):
+        camera_name = camera["name"]
+        module = 'tracking' if camera.get('app_role') == 'tracking' else 'detection'
+        status = get_camera_status(camera_name, module)
         severity = status.get("severity")
         box = QFrame()
         box.setObjectName("AlarmCard" if severity=="alarm" else "WarningCard" if severity=="warning" else "CameraCard")
@@ -52,7 +64,7 @@ class SummaryPage(QWidget):
         layout.setContentsMargins(18,18,18,18)
         title = QLabel(camera_name)
         title.setObjectName("SectionTitle")
-        last = QLabel(f"Последнее событие: {status.get('event_type', 'Событий не обнаружено')}")
+        last = QLabel(f"Последнее событие: {(status.get('event_type') if status.get('severity') else 'Событий не обнаружено')}")
         last.setObjectName("Subtitle")
         last.setWordWrap(True)
         events_scroll = QScrollArea()
@@ -98,5 +110,5 @@ class SummaryPage(QWidget):
         return f"• {e.get('event_type','UNKNOWN')}; время: {e.get('timestamp_sec', e.get('time_sec','?'))} сек.; кадр: {e.get('frame','?')}; объект: {e.get('object_id','?')}; класс: {e.get('class_name', e.get('class','?'))}; уверенность: {e.get('confidence_score','?')}"
 
     def _ack(self, camera_name):
-        acknowledge_summary_camera(camera_name)
+        acknowledge_summary_camera(camera_name, module)
         self.refresh()
