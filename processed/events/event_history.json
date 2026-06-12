@@ -6,15 +6,6 @@
     "frame_path": "processed\\event_frames\\per_cam_1_event.jpg",
     "log_path": "processed\\logs\\1_lens_crack_events.json",
     "video_path": "input_stream\\live\\per_cam_1\\1_lens_crack.mp4",
-    "created_at": "2026-06-11 19:10:36"
-  },
-  {
-    "camera_name": "per_cam_1",
-    "severity": "warning",
-    "event_type": "WARNING_STERILE_ZONE",
-    "frame_path": "processed\\event_frames\\per_cam_1_event.jpg",
-    "log_path": "processed\\logs\\1_lens_crack_events.json",
-    "video_path": "input_stream\\live\\per_cam_1\\1_lens_crack.mp4",
     "created_at": "2026-06-11 19:15:06"
   },
   {
@@ -33,6 +24,6 @@
     "frame_path": "processed\\event_frames\\per_cam_1_event.jpg",
     "log_path": "processed\\logs\\5_rain_events.json",
     "video_path": "input_stream\\live\\per_cam_1\\5_rain.mp4",
-    "created_at": "2026-06-11 19:17:10"
+    "created_at": "2026-06-11 19:54:09"
   }
 ]

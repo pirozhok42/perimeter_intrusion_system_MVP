@@ -88,3 +88,10 @@ def acknowledge_summary_camera(camera_name):
 def get_alert_flags():
     state = load_event_state()
     return bool(state.get("has_perimeter_alert")), bool(state.get("has_summary_alert"))
+
+
+def delete_history_records(indices: list[int]):
+    history = load_event_history()
+    index_set = set(indices)
+    new_history = [event for idx, event in enumerate(history) if idx not in index_set]
+    save_event_history(new_history)

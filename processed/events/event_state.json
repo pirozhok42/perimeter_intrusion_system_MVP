@@ -7,7 +7,7 @@
       "log_path": "processed\\logs\\5_rain_events.json",
       "video_path": "input_stream\\live\\per_cam_1\\5_rain.mp4",
       "acknowledged": true,
-      "updated_at": "2026-06-11 19:17:10"
+      "updated_at": "2026-06-11 19:54:09"
     }
   },
   "has_perimeter_alert": false,
